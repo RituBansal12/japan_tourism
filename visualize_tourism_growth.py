@@ -301,6 +301,214 @@ def animate_top_15_countries():
         steps_per_period=30  # More frames for smoother animation
     )
 
+# 7. Difference-in-Differences Analysis: Japan vs Other Top Destinations
+def plot_difference_in_differences():
+    # Load the global tourism data
+    global_data = pd.read_csv('raw_data/tourism_top_10_countries.csv')
+    global_data['Total_tourists'] = global_data['Total_tourists'].str.replace(',', '').astype(float)
+    
+    # Aggregate Japan's total tourism for 2019 and 2023 from cleaned_visitors.csv
+    japan_agg = (
+        df[df['year'].isin([2019, 2023])]
+          .groupby('year')['tourist'].sum()
+          .reset_index()
+          .rename(columns={'year': 'Year', 'tourist': 'Total_tourists'})
+    )
+    japan_agg['Country'] = 'Japan'
+    
+    # Only keep 2019 and 2023 for Japan
+    japan_agg = japan_agg[japan_agg['Year'].isin([2019, 2023])]
+    
+    # Combine global data with Japan aggregate
+    combined_data = pd.concat([global_data, japan_agg], ignore_index=True)
+    
+    # Filter for 2019 and 2023 (pre/post treatment)
+    analysis_data = combined_data[combined_data['Year'].isin([2019, 2023])].copy()
+    
+    # Calculate growth rates for each country
+    growth_data = []
+    for country in analysis_data['Country'].unique():
+        country_data = analysis_data[analysis_data['Country'] == country]
+        if len(country_data) == 2:  # Has both 2019 and 2023 data
+            pre_covid = country_data[country_data['Year'] == 2019]['Total_tourists'].iloc[0]
+            post_covid = country_data[country_data['Year'] == 2023]['Total_tourists'].iloc[0]
+            growth_rate = ((post_covid - pre_covid) / pre_covid) * 100
+            growth_data.append({
+                'Country': country,
+                'Pre_Covid_2019': pre_covid,
+                'Post_Covid_2023': post_covid,
+                'Growth_Rate_%': growth_rate
+            })
+    
+    growth_df = pd.DataFrame(growth_data)
+    growth_df = growth_df.sort_values('Growth_Rate_%', ascending=True)
+    
+    # Create the plot
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+    
+    # Plot 1: Growth rates comparison
+    colors = ['#2066a8' if country == 'Japan' else '#8ec1da' for country in growth_df['Country']]
+    bars = ax1.barh(growth_df['Country'], growth_df['Growth_Rate_%'], 
+                    color=colors, alpha=0.8, edgecolor='black', linewidth=1)
+    
+    # Highlight Japan
+    if 'Japan' in growth_df['Country'].values:
+        japan_idx = growth_df[growth_df['Country'] == 'Japan'].index[0]
+        bars[japan_idx].set_color('#ae282c')  # Red for Japan
+    
+    ax1.set_title('Tourism Recovery Post-COVID: Growth Rate (2019→2023)', 
+                  fontweight='bold', pad=20, fontsize=16)
+    ax1.set_xlabel('Growth Rate (%)', fontweight='bold')
+    ax1.set_ylabel('Country', fontweight='bold')
+    
+    # Add value labels on bars
+    for bar, rate in zip(bars, growth_df['Growth_Rate_%']):
+        width = bar.get_width()
+        ax1.text(width + 1, bar.get_y() + bar.get_height()/2,
+                f'{rate:.1f}%', ha='left', va='center', fontweight='bold')
+    
+    # Add a vertical line at 0%
+    ax1.axvline(x=0, color='black', linestyle='-', alpha=0.5)
+    
+    # Plot 2: Pre vs Post COVID comparison
+    plot_data = analysis_data.pivot(index='Country', columns='Year', values='Total_tourists').fillna(0)
+    plot_data = plot_data / 1e6
+    x = np.arange(len(plot_data))
+    width = 0.35
+    bars1 = ax2.bar(x - width/2, plot_data[2019], width, label='2019 (Pre-COVID)', 
+                     color='#2066a8', alpha=0.7)
+    bars2 = ax2.bar(x + width/2, plot_data[2023], width, label='2023 (Post-COVID)', 
+                     color='#ae282c', alpha=0.7)
+    if 'Japan' in plot_data.index:
+        japan_idx = plot_data.index.get_loc('Japan')
+        bars1[japan_idx].set_color('#2066a8')
+        bars2[japan_idx].set_color('#ae282c')
+    ax2.set_title('Tourist Numbers: Pre vs Post COVID (2019 vs 2023)', 
+                  fontweight='bold', pad=20, fontsize=16)
+    ax2.set_xlabel('Country', fontweight='bold')
+    ax2.set_ylabel('Tourists (Millions)', fontweight='bold')
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(plot_data.index, rotation=45, ha='right')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    for bar in bars1:
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2., height + height*0.01,
+                f'{height:.1f}M', ha='center', va='bottom', fontsize=9)
+    for bar in bars2:
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2., height + height*0.01,
+                f'{height:.1f}M', ha='center', va='bottom', fontsize=9)
+    plt.tight_layout()
+    plt.savefig('visualizations/difference_in_differences_analysis.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    # Print summary statistics
+    print("\n=== DIFFERENCE-IN-DIFFERENCES ANALYSIS ===")
+    print("Tourism Recovery Post-COVID (2019 → 2023)")
+    print("=" * 50)
+    other_countries_growth = growth_df[growth_df['Country'] != 'Japan']['Growth_Rate_%'].mean()
+    japan_growth = growth_df[growth_df['Country'] == 'Japan']['Growth_Rate_%'].iloc[0]
+    print(f"Japan's Growth Rate: {japan_growth:.1f}%")
+    print(f"Average Growth Rate (Other Countries): {other_countries_growth:.1f}%")
+    print(f"Difference: {japan_growth - other_countries_growth:.1f} percentage points")
+    japan_pre_covid = growth_df[growth_df['Country'] == 'Japan']['Pre_Covid_2019'].iloc[0] / 1e6
+    print(f"\nJapan's Pre-COVID Tourism (2019): {japan_pre_covid:.1f}M tourists")
+    print(f"\nTop 3 Growth Performers:")
+    top_3 = growth_df.tail(3)
+    for _, row in top_3.iterrows():
+        print(f"  {row['Country']}: {row['Growth_Rate_%']:.1f}%")
+    print(f"\nBottom 3 Growth Performers:")
+    bottom_3 = growth_df.head(3)
+    for _, row in bottom_3.iterrows():
+        print(f"  {row['Country']}: {row['Growth_Rate_%']:.1f}%")
+    return growth_df
+
+def plot_two_period_growth_comparison():
+    # Load global data
+    global_data = pd.read_csv('raw_data/tourism_top_10_countries.csv')
+    global_data['Total_tourists'] = global_data['Total_tourists'].str.replace(',', '').astype(float)
+    
+    # Get the list of top 10 countries (excluding Japan)
+    top_countries = global_data['Country'].unique().tolist()
+    if 'Japan' in top_countries:
+        top_countries.remove('Japan')
+    
+    # Aggregate Japan's total tourism for 2014, 2019, 2024
+    japan_years = [2014, 2019, 2024]
+    japan_agg = (
+        df[df['year'].isin(japan_years)]
+          .groupby('year')['tourist'].sum()
+          .reset_index()
+          .rename(columns={'year': 'Year', 'tourist': 'Total_tourists'})
+    )
+    japan_agg['Country'] = 'Japan'
+    
+    # Build a combined dataframe for all countries (10 + Japan)
+    all_countries = top_countries + ['Japan']
+    records = []
+    for country in all_countries:
+        if country == 'Japan':
+            for y in japan_years:
+                val = japan_agg[japan_agg['Year'] == y]['Total_tourists']
+                if not val.empty:
+                    records.append({'Country': 'Japan', 'Year': y, 'Total_tourists': val.values[0]})
+        else:
+            for y in japan_years:
+                val = global_data[(global_data['Country'] == country) & (global_data['Year'] == y)]['Total_tourists']
+                if not val.empty:
+                    records.append({'Country': country, 'Year': y, 'Total_tourists': val.values[0]})
+    combined = pd.DataFrame(records)
+    
+    # Calculate growth rates for each country
+    growth_data = []
+    for country in all_countries:
+        cdata = combined[combined['Country'] == country]
+        y2014 = cdata[cdata['Year'] == 2014]['Total_tourists']
+        y2019 = cdata[cdata['Year'] == 2019]['Total_tourists']
+        y2024 = cdata[cdata['Year'] == 2024]['Total_tourists']
+        if not (y2014.empty or y2019.empty or y2024.empty):
+            growth_14_19 = ((y2019.values[0] - y2014.values[0]) / y2014.values[0]) * 100
+            growth_19_24 = ((y2024.values[0] - y2019.values[0]) / y2019.values[0]) * 100
+            growth_data.append({
+                'Country': country,
+                'Growth_2014_2019': growth_14_19,
+                'Growth_2019_2024': growth_19_24
+            })
+    growth_df = pd.DataFrame(growth_data)
+    # Sort to put Japan first, then by 2019-2024 growth for visual clarity
+    growth_df['is_japan'] = growth_df['Country'] == 'Japan'
+    growth_df = growth_df.sort_values(['is_japan', 'Growth_2019_2024'], ascending=[False, False])
+    growth_df = growth_df.drop('is_japan', axis=1)
+    
+    # Plot grouped bar chart
+    x = np.arange(len(growth_df))
+    width = 0.35
+    fig, ax = plt.subplots(figsize=(20, 10))  # Increased width to accommodate all 11 countries
+    
+    # Use consistent colors for all countries
+    period1_color = '#2066a8'  # Dark blue for 2014→2019
+    period2_color = '#ae282c'  # Dark red for 2019→2024
+    
+    bars1 = ax.bar(x - width/2, growth_df['Growth_2014_2019'], width, label='2014→2019', color=period1_color, alpha=0.8)
+    bars2 = ax.bar(x + width/2, growth_df['Growth_2019_2024'], width, label='2019→2024', color=period2_color, alpha=0.8)
+    ax.set_xticks(x)
+    ax.set_xticklabels(growth_df['Country'], rotation=0, ha='center', fontsize=11)  # No rotation, smaller font
+    ax.set_ylabel('Growth Rate (%)', fontweight='bold', fontsize=14)
+    ax.set_title('Top Global Destinations: Tourism Growth Rate', fontweight='bold', fontsize=18, pad=20)
+    ax.legend(fontsize=13)
+    ax.grid(True, axis='y', alpha=0.3)
+    # Add value labels
+    for bar in bars1:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height + 1, f'{height:.1f}%', ha='center', va='bottom', fontsize=10)
+    for bar in bars2:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height + 1, f'{height:.1f}%', ha='center', va='bottom', fontsize=10)
+    plt.tight_layout()
+    plt.savefig('visualizations/two_period_growth_comparison.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    print('\nTwo-period growth comparison chart created: visualizations/two_period_growth_comparison.png')
+
 # Main execution
 if __name__ == "__main__":
     print("Creating visualizations...")
@@ -323,5 +531,11 @@ if __name__ == "__main__":
     
     animate_top_15_countries()
     print("Top 15 countries bar chart race animation created")
+    
+    plot_difference_in_differences()
+    print("Difference-in-Differences analysis created")
+    
+    plot_two_period_growth_comparison()
+    print("Two-period growth comparison chart created")
     
     print("\nAll visualizations saved in the 'visualizations' folder!") 
