@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib import font_manager
 import warnings
 warnings.filterwarnings('ignore')
+import bar_chart_race as bcr
 
 # Set up sophisticated fonts
 plt.rcParams['font.family'] = 'serif'
@@ -243,9 +244,6 @@ def plot_monthly_distribution_heatmap():
     
     # Group by year and month, sum tourists
     monthly = filtered_df.groupby(['year', 'month'])['tourist'].sum().reset_index()
-    # Quick check: print the sum of tourists for each month for each year
-    print("Monthly tourist sums by year (excluding 2020-2022):")
-    print(monthly.pivot(index='year', columns='month', values='tourist').fillna(0))
     
     # Calculate total tourists per year
     yearly_totals = monthly.groupby('year')['tourist'].sum().reset_index().rename(columns={'tourist': 'year_total'})
@@ -275,24 +273,55 @@ def plot_monthly_distribution_heatmap():
     plt.savefig('visualizations/monthly_distribution_heatmap.png', dpi=300, bbox_inches='tight')
     plt.close()
 
+
+def animate_top_15_countries():
+    # Prepare data: sum by year and country, EXCLUDING COVID YEARS (2020-2022)
+    yearly_country = df[~df['year'].isin([2020, 2021, 2022])].groupby(['year', 'country'])['tourist'].sum().reset_index()
+    
+    # Pivot for bar_chart_race: index=year, columns=country, values=tourist
+    pivot = yearly_country.pivot(index='year', columns='country', values='tourist').fillna(0)
+    
+    bcr.bar_chart_race(
+        df=pivot,
+        filename='visualizations/top_15_countries_barchart_race.mp4',
+        orientation='h',
+        sort='desc',
+        n_bars=15,
+        period_length=3000,  # Slower for smoother transitions (3 seconds per year)
+        interpolate_period=True,
+        title='Top 15 Countries by Tourism Visitors to Japan (1996-2024)\nExcluding Covid Era (2020-2022)',
+        bar_size=.95,
+        period_label=True,
+        period_fmt='{x:.0f}',  # Show year as integer without decimal
+        cmap='tab20',  # Use a pleasing colormap
+        filter_column_colors=True,
+        figsize=(16, 9),
+        dpi=144,
+        writer='ffmpeg',
+        steps_per_period=30  # More frames for smoother animation
+    )
+
 # Main execution
 if __name__ == "__main__":
     print("Creating visualizations...")
     
     # Create all visualizations
     plot_total_visitors_growth()
-    print("✓ Total visitors growth chart created")
+    print("Total visitors growth chart created")
     
     plot_regional_maps()
-    print("✓ Regional distribution stacked bar chart created")
+    print("Regional distribution stacked bar chart created")
     
     plot_top_countries()
-    print("✓ Top 10 countries chart created")
+    print("Top 10 countries chart created")
     
     plot_post_covid_growth()
-    print("✓ Post-COVID growth chart created")
+    print("Post-COVID growth chart created")
     
     plot_monthly_distribution_heatmap()
-    print("✓ Monthly distribution heatmap created")
+    print("Monthly distribution heatmap created")
+    
+    animate_top_15_countries()
+    print("Top 15 countries bar chart race animation created")
     
     print("\nAll visualizations saved in the 'visualizations' folder!") 

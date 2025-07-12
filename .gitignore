@@ -68,6 +68,7 @@ coverage.xml
 # Data and output
 raw_data/
 processed_data/
+visualizations/
 
 # MacOS
 .DS_Store
