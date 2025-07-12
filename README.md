@@ -8,4 +8,4 @@ Folders:
 
 Files:
 1. clean_visitors_csv.py - Converts raw data into csv for analysis
-2. visualize_tourism_growth.py - High level numbers of tourism boomn in Japan
+2. visualize_tourism_growth.py - High level numbers of tourism boomn in Japan & Comparison with other destinations
