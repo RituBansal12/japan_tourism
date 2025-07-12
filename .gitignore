@@ -65,11 +65,6 @@ coverage.xml
 # Pyre type checker
 .pyre/
 
-# Data and output
-raw_data/
-processed_data/
-visualizations/
-
 # MacOS
 .DS_Store
 
