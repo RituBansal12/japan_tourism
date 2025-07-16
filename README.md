@@ -9,3 +9,5 @@ Folders:
 Files:
 1. clean_visitors_csv.py - Converts raw data into csv for analysis
 2. visualize_tourism_growth.py - High level numbers of tourism boomn in Japan & Comparison with other destinations
+3. travel_costs.py - Compares inflation adjusted daily travel costs for top travel destinations
+4. cultural_exports.py - Generates visulizations regarding market size of japanese cultural exports like Anime, Manga, etc.,
