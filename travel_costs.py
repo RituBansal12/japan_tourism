@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from plot_config import *
 
 # Read the CSV file
 csv_path = os.path.join('raw_data', 'travel_costs.csv')
@@ -23,11 +24,11 @@ for country in df['Country'].unique():
         label=country
     )
 
-plt.xlabel('Year')
-plt.ylabel('InflationAdjusted Daily Spend (USD)')
-plt.title('Inflation Adjusted Daily Spend by Country (2010-2024)')
+plt.xlabel('Year', **STANDARD_LABEL_CONFIG)
+plt.ylabel('Inflation Adjusted Daily Spend (USD)', **STANDARD_LABEL_CONFIG)
+plt.title('Inflation Adjusted Daily Spend by Country (2010-2024)', **STANDARD_TITLE_CONFIG)
 plt.legend(title='Country')
-plt.grid(True, linestyle='--', alpha=0.5)
+plt.grid(True, **STANDARD_GRID_CONFIG)
 plt.tight_layout()
-plt.savefig('visualizations/travel_costs_cpi_adjusted.png')
-plt.show() 
+plt.savefig('visualizations/travel_costs_cpi_adjusted.png', **STANDARD_FIGURE_CONFIG)
+plt.close() 

@@ -6,17 +6,7 @@ from matplotlib import font_manager
 import warnings
 warnings.filterwarnings('ignore')
 import bar_chart_race as bcr
-
-# Set up sophisticated fonts
-plt.rcParams['font.family'] = 'serif'
-plt.rcParams['font.serif'] = ['Times New Roman', 'DejaVu Serif', 'Georgia']
-plt.rcParams['font.size'] = 12
-plt.rcParams['axes.titlesize'] = 18
-plt.rcParams['axes.labelsize'] = 14
-plt.rcParams['xtick.labelsize'] = 12
-plt.rcParams['ytick.labelsize'] = 12
-plt.rcParams['legend.fontsize'] = 12
-plt.rcParams['figure.titlesize'] = 20
+from plot_config import *
 
 # Create visualizations folder if it doesn't exist
 import os
@@ -34,21 +24,9 @@ df['date'] = pd.to_datetime(df['year'].astype(str) + '-' + df['month'] + '-01')
 df = df[~df['country'].str.contains('Unclassified', na=False)]
 df = df[df['year'] <= 2024]
 
-# Use custom divergent color palette (expanded to 10 colors)
-COLOR_PALETTE = [
-    '#2066a8',  # Dark Blue
-    '#3a7fc2',  # Between Dark & Med Blue
-    '#8ec1da',  # Med Blue
-    '#a7d3e4',  # Between Med & Light Blue
-    '#cde1ec',  # Light Blue (fixed typo)
-    '#ededed',  # Gray
-    '#f6d6c2',  # Light Red
-    '#efb09a',  # Between Light & Med Red
-    '#d47264',  # Med Red
-    '#ae282c'   # Dark Red
-]
 
-# 1. Total Tourists Over Time (Simplified)
+
+# 1. Total Tourists Over Time
 def plot_total_visitors_growth():
     # Aggregate by year using tourist data
     yearly_data = df.groupby('year')['tourist'].sum().reset_index()
@@ -61,10 +39,9 @@ def plot_total_visitors_growth():
     line = ax.plot(yearly_data['year'], yearly_data['tourist'] / 1e6, 
                    color='#1f1f1f', linewidth=4, marker='o', markersize=8)
     
-    ax.set_xlabel('Year', fontweight='bold')
-    ax.set_ylabel('Total Tourists (In Millions)', fontweight='bold')
-    ax.set_title('Japan Tourism: Total Tourists (1996-2024)', 
-                fontweight='bold', pad=20)
+    ax.set_xlabel('Year', **STANDARD_LABEL_CONFIG)
+    ax.set_ylabel('Total Tourists (In Millions)', **STANDARD_LABEL_CONFIG)
+    ax.set_title('Japan Tourism: Total Tourists (1996-2024)', **STANDARD_TITLE_CONFIG)
     ax.grid(True, alpha=0.3)
     
     # Rotate x-axis labels 90 degrees
@@ -86,7 +63,7 @@ def plot_total_visitors_growth():
     ax.legend(loc='upper left')
     
     plt.tight_layout()
-    plt.savefig('visualizations/total_visitors_growth.png', dpi=300, bbox_inches='tight')
+    plt.savefig('visualizations/total_visitors_growth.png', **STANDARD_FIGURE_CONFIG)
     plt.close()
 
 # 2. Regional Distribution Stacked Bar Chart (1996-2024, 5-year intervals)
@@ -131,9 +108,9 @@ def plot_regional_maps():
     fig, ax = plt.subplots(figsize=(14, 8))
     regional_pivot_percent.plot(kind='bar', stacked=True, ax=ax, color=colors, alpha=0.8, edgecolor='black', linewidth=1)
     
-    ax.set_title('Breakdown of Tourists by Region', fontweight='bold', pad=20)
-    ax.set_ylabel('Percentage of Tourists (%)', fontweight='bold')
-    ax.set_xlabel('Period', fontweight='bold')
+    ax.set_title('Breakdown of Tourists by Region', **STANDARD_TITLE_CONFIG)
+    ax.set_ylabel('Percentage of Tourists (%)', **STANDARD_LABEL_CONFIG)
+    ax.set_xlabel('Period', **STANDARD_LABEL_CONFIG)
     
     # Set x-axis labels (horizontal, smaller font)
     ax.set_xticklabels(interval_labels, fontsize=10, rotation=0)
@@ -149,7 +126,7 @@ def plot_regional_maps():
     ax.set_ylim(0, 100)
     
     plt.tight_layout(rect=[0, 0.08, 1, 1])
-    plt.savefig('visualizations/regional_distribution_maps.png', dpi=300, bbox_inches='tight')
+    plt.savefig('visualizations/regional_distribution_maps.png', **STANDARD_FIGURE_CONFIG)
     plt.close()
 
 # 3. Top 10 Countries by Tourist Count (2023-2024) - Sorted in descending order
@@ -167,10 +144,9 @@ def plot_top_countries():
     bars = ax.barh(top_10_countries['country'], top_10_countries['tourist'] / 1e6, 
                    color=colors, alpha=0.8, edgecolor='black', linewidth=1)
     
-    ax.set_title('Top 10 Countries by Tourist Visitors to Japan (2023-2024)', 
-                fontweight='bold', pad=20)
-    ax.set_xlabel('Total Tourists (In Millions)', fontweight='bold')
-    ax.set_ylabel('Country', fontweight='bold')
+    ax.set_title('Top 10 Countries by Tourist Visitors to Japan (2023-2024)', **STANDARD_TITLE_CONFIG)
+    ax.set_xlabel('Total Tourists (In Millions)', **STANDARD_LABEL_CONFIG)
+    ax.set_ylabel('Country', **STANDARD_LABEL_CONFIG)
     
     # Add value labels on bars
     for bar, total in zip(bars, top_10_countries['tourist']):
@@ -182,7 +158,7 @@ def plot_top_countries():
     ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:.1f}M'))
     
     plt.tight_layout()
-    plt.savefig('visualizations/top_10_countries.png', dpi=300, bbox_inches='tight')
+    plt.savefig('visualizations/top_10_countries.png', **STANDARD_FIGURE_CONFIG)
     plt.close()
 
 # 4. Top 10 Countries with Highest Post-COVID Growth - Sorted in descending order
@@ -207,10 +183,9 @@ def plot_post_covid_growth():
     bars = ax.barh(top_10_growth['country'], top_10_growth['growth_percentage'], 
                    color=colors, alpha=0.8, edgecolor='black', linewidth=1)
     
-    ax.set_title('Top 10 Countries with Highest Growth (2011 vs 2024)', 
-                fontweight='bold', pad=20)
-    ax.set_xlabel('Growth Percentage (%)', fontweight='bold')
-    ax.set_ylabel('Country', fontweight='bold')
+    ax.set_title('Top 10 Countries with Highest Growth (2011 vs 2024)', **STANDARD_TITLE_CONFIG)
+    ax.set_xlabel('Growth Percentage (%)', **STANDARD_LABEL_CONFIG)
+    ax.set_ylabel('Country', **STANDARD_LABEL_CONFIG)
     
     # Add percentage labels on bars (rounded, no decimals)
     for bar, pct in zip(bars, top_10_growth['growth_percentage']):
@@ -222,7 +197,7 @@ def plot_post_covid_growth():
     ax.axvline(x=0, color='black', linestyle='-', alpha=0.5)
     
     plt.tight_layout()
-    plt.savefig('visualizations/top_10_highest_growth.png', dpi=300, bbox_inches='tight')
+    plt.savefig('visualizations/top_10_highest_growth.png', **STANDARD_FIGURE_CONFIG)
     plt.close()
 
 def plot_monthly_distribution_heatmap():
@@ -264,13 +239,13 @@ def plot_monthly_distribution_heatmap():
         annot=False,
         cbar_kws={'label': '% of Annual Tourists'}
     )
-    plt.title('Monthly Distribution of Tourists as % of Annual Total', fontsize=20, fontweight='bold', pad=20)
-    plt.xlabel('Month', fontsize=14, fontweight='bold')
-    plt.ylabel('Year', fontsize=14, fontweight='bold')
-    plt.xticks(fontsize=11, fontweight='bold')
-    plt.yticks(fontsize=11, fontweight='bold')
+    plt.title('Monthly Distribution of Tourists as % of Annual Total', **STANDARD_TITLE_CONFIG)
+    plt.xlabel('Month', **STANDARD_LABEL_CONFIG)
+    plt.ylabel('Year', **STANDARD_LABEL_CONFIG)
+    plt.xticks(fontsize=12, fontweight='normal')
+    plt.yticks(fontsize=12, fontweight='normal')
     plt.tight_layout()
-    plt.savefig('visualizations/monthly_distribution_heatmap.png', dpi=300, bbox_inches='tight')
+    plt.savefig('visualizations/monthly_distribution_heatmap.png', **STANDARD_FIGURE_CONFIG)
     plt.close()
 
 
@@ -290,138 +265,19 @@ def animate_top_15_countries():
         period_length=3000,  # Slower for smoother transitions (3 seconds per year)
         interpolate_period=True,
         title='Top 15 Countries by Tourism Visitors to Japan (1996-2024)\nExcluding Covid Era (2020-2022)',
+        title_size=20,  # Bold title size
         bar_size=.95,
         period_label=True,
         period_fmt='{x:.0f}',  # Show year as integer without decimal
-        cmap='tab20',  # Use a pleasing colormap
-        filter_column_colors=True,
+        cmap=['#2066a8'],  # Use custom blue color for all bars
+        filter_column_colors=False,  # Disable to use single color
         figsize=(16, 9),
         dpi=144,
         writer='ffmpeg',
-        steps_per_period=30  # More frames for smoother animation
+        steps_per_period=30,  # More frames for smoother animation
+        tick_label_size=12,  # Larger y-axis labels
+        shared_fontdict={'weight': 'bold'}  # Make all text bold
     )
-
-# 7. Difference-in-Differences Analysis: Japan vs Other Top Destinations
-def plot_difference_in_differences():
-    # Load the global tourism data
-    global_data = pd.read_csv('raw_data/tourism_top_10_countries.csv')
-    global_data['Total_tourists'] = global_data['Total_tourists'].str.replace(',', '').astype(float)
-    
-    # Aggregate Japan's total tourism for 2019 and 2023 from cleaned_visitors.csv
-    japan_agg = (
-        df[df['year'].isin([2019, 2023])]
-          .groupby('year')['tourist'].sum()
-          .reset_index()
-          .rename(columns={'year': 'Year', 'tourist': 'Total_tourists'})
-    )
-    japan_agg['Country'] = 'Japan'
-    
-    # Only keep 2019 and 2023 for Japan
-    japan_agg = japan_agg[japan_agg['Year'].isin([2019, 2023])]
-    
-    # Combine global data with Japan aggregate
-    combined_data = pd.concat([global_data, japan_agg], ignore_index=True)
-    
-    # Filter for 2019 and 2023 (pre/post treatment)
-    analysis_data = combined_data[combined_data['Year'].isin([2019, 2023])].copy()
-    
-    # Calculate growth rates for each country
-    growth_data = []
-    for country in analysis_data['Country'].unique():
-        country_data = analysis_data[analysis_data['Country'] == country]
-        if len(country_data) == 2:  # Has both 2019 and 2023 data
-            pre_covid = country_data[country_data['Year'] == 2019]['Total_tourists'].iloc[0]
-            post_covid = country_data[country_data['Year'] == 2023]['Total_tourists'].iloc[0]
-            growth_rate = ((post_covid - pre_covid) / pre_covid) * 100
-            growth_data.append({
-                'Country': country,
-                'Pre_Covid_2019': pre_covid,
-                'Post_Covid_2023': post_covid,
-                'Growth_Rate_%': growth_rate
-            })
-    
-    growth_df = pd.DataFrame(growth_data)
-    growth_df = growth_df.sort_values('Growth_Rate_%', ascending=True)
-    
-    # Create the plot
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
-    
-    # Plot 1: Growth rates comparison
-    colors = ['#2066a8' if country == 'Japan' else '#8ec1da' for country in growth_df['Country']]
-    bars = ax1.barh(growth_df['Country'], growth_df['Growth_Rate_%'], 
-                    color=colors, alpha=0.8, edgecolor='black', linewidth=1)
-    
-    # Highlight Japan
-    if 'Japan' in growth_df['Country'].values:
-        japan_idx = growth_df[growth_df['Country'] == 'Japan'].index[0]
-        bars[japan_idx].set_color('#ae282c')  # Red for Japan
-    
-    ax1.set_title('Tourism Recovery Post-COVID: Growth Rate (2019→2023)', 
-                  fontweight='bold', pad=20, fontsize=16)
-    ax1.set_xlabel('Growth Rate (%)', fontweight='bold')
-    ax1.set_ylabel('Country', fontweight='bold')
-    
-    # Add value labels on bars
-    for bar, rate in zip(bars, growth_df['Growth_Rate_%']):
-        width = bar.get_width()
-        ax1.text(width + 1, bar.get_y() + bar.get_height()/2,
-                f'{rate:.1f}%', ha='left', va='center', fontweight='bold')
-    
-    # Add a vertical line at 0%
-    ax1.axvline(x=0, color='black', linestyle='-', alpha=0.5)
-    
-    # Plot 2: Pre vs Post COVID comparison
-    plot_data = analysis_data.pivot(index='Country', columns='Year', values='Total_tourists').fillna(0)
-    plot_data = plot_data / 1e6
-    x = np.arange(len(plot_data))
-    width = 0.35
-    bars1 = ax2.bar(x - width/2, plot_data[2019], width, label='2019 (Pre-COVID)', 
-                     color='#2066a8', alpha=0.7)
-    bars2 = ax2.bar(x + width/2, plot_data[2023], width, label='2023 (Post-COVID)', 
-                     color='#ae282c', alpha=0.7)
-    if 'Japan' in plot_data.index:
-        japan_idx = plot_data.index.get_loc('Japan')
-        bars1[japan_idx].set_color('#2066a8')
-        bars2[japan_idx].set_color('#ae282c')
-    ax2.set_title('Tourist Numbers: Pre vs Post COVID (2019 vs 2023)', 
-                  fontweight='bold', pad=20, fontsize=16)
-    ax2.set_xlabel('Country', fontweight='bold')
-    ax2.set_ylabel('Tourists (Millions)', fontweight='bold')
-    ax2.set_xticks(x)
-    ax2.set_xticklabels(plot_data.index, rotation=45, ha='right')
-    ax2.legend()
-    ax2.grid(True, alpha=0.3)
-    for bar in bars1:
-        height = bar.get_height()
-        ax2.text(bar.get_x() + bar.get_width()/2., height + height*0.01,
-                f'{height:.1f}M', ha='center', va='bottom', fontsize=9)
-    for bar in bars2:
-        height = bar.get_height()
-        ax2.text(bar.get_x() + bar.get_width()/2., height + height*0.01,
-                f'{height:.1f}M', ha='center', va='bottom', fontsize=9)
-    plt.tight_layout()
-    plt.savefig('visualizations/difference_in_differences_analysis.png', dpi=300, bbox_inches='tight')
-    plt.close()
-    # Print summary statistics
-    print("\n=== DIFFERENCE-IN-DIFFERENCES ANALYSIS ===")
-    print("Tourism Recovery Post-COVID (2019 → 2023)")
-    print("=" * 50)
-    other_countries_growth = growth_df[growth_df['Country'] != 'Japan']['Growth_Rate_%'].mean()
-    japan_growth = growth_df[growth_df['Country'] == 'Japan']['Growth_Rate_%'].iloc[0]
-    print(f"Japan's Growth Rate: {japan_growth:.1f}%")
-    print(f"Average Growth Rate (Other Countries): {other_countries_growth:.1f}%")
-    print(f"Difference: {japan_growth - other_countries_growth:.1f} percentage points")
-    japan_pre_covid = growth_df[growth_df['Country'] == 'Japan']['Pre_Covid_2019'].iloc[0] / 1e6
-    print(f"\nJapan's Pre-COVID Tourism (2019): {japan_pre_covid:.1f}M tourists")
-    print(f"\nTop 3 Growth Performers:")
-    top_3 = growth_df.tail(3)
-    for _, row in top_3.iterrows():
-        print(f"  {row['Country']}: {row['Growth_Rate_%']:.1f}%")
-    print(f"\nBottom 3 Growth Performers:")
-    bottom_3 = growth_df.head(3)
-    for _, row in bottom_3.iterrows():
-        print(f"  {row['Country']}: {row['Growth_Rate_%']:.1f}%")
-    return growth_df
 
 def plot_two_period_growth_comparison():
     # Load global data
@@ -493,9 +349,9 @@ def plot_two_period_growth_comparison():
     bars2 = ax.bar(x + width/2, growth_df['Growth_2019_2024'], width, label='2019→2024', color=period2_color, alpha=0.8)
     ax.set_xticks(x)
     ax.set_xticklabels(growth_df['Country'], rotation=0, ha='center', fontsize=11)  # No rotation, smaller font
-    ax.set_ylabel('Growth Rate (%)', fontweight='bold', fontsize=14)
-    ax.set_title('Top Global Destinations: Tourism Growth Rate', fontweight='bold', fontsize=18, pad=20)
-    ax.legend(fontsize=13)
+    ax.set_ylabel('Growth Rate (%)', **STANDARD_LABEL_CONFIG)
+    ax.set_title('Top Global Destinations: Tourism Growth Rate', **STANDARD_TITLE_CONFIG)
+    ax.legend(fontsize=12)
     ax.grid(True, axis='y', alpha=0.3)
     # Add value labels
     for bar in bars1:
@@ -505,7 +361,7 @@ def plot_two_period_growth_comparison():
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height + 1, f'{height:.1f}%', ha='center', va='bottom', fontsize=10)
     plt.tight_layout()
-    plt.savefig('visualizations/two_period_growth_comparison.png', dpi=300, bbox_inches='tight')
+    plt.savefig('visualizations/two_period_growth_comparison.png', **STANDARD_FIGURE_CONFIG)
     plt.close()
     print('\nTwo-period growth comparison chart created: visualizations/two_period_growth_comparison.png')
 
@@ -531,9 +387,6 @@ if __name__ == "__main__":
     
     animate_top_15_countries()
     print("Top 15 countries bar chart race animation created")
-    
-    plot_difference_in_differences()
-    print("Difference-in-Differences analysis created")
     
     plot_two_period_growth_comparison()
     print("Two-period growth comparison chart created")
