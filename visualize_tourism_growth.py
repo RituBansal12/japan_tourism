@@ -66,69 +66,6 @@ def plot_total_visitors_growth():
     plt.savefig('visualizations/total_visitors_growth.png', **STANDARD_FIGURE_CONFIG)
     plt.close()
 
-# 2. Regional Distribution Stacked Bar Chart (1996-2024, 5-year intervals)
-def plot_regional_maps():
-    # Define non-overlapping intervals
-    intervals = [
-        (1996, 2000),
-        (2001, 2005),
-        (2006, 2010),
-        (2011, 2015),
-        (2016, 2020),
-        (2021, 2024)
-    ]
-    interval_labels = [f"{start}-{end}" for start, end in intervals]
-    
-    # Assign each row to an interval
-    def assign_interval(year):
-        for i, (start, end) in enumerate(intervals):
-            if start <= year <= end:
-                return interval_labels[i]
-        return None
-    
-    df['period'] = df['year'].apply(assign_interval)
-    regional_data = df[df['period'].notnull()]
-    
-    # Remove Africa from the data
-    regional_data = regional_data[regional_data['region'] != 'Africa']
-    
-    # Aggregate by period and region
-    regional_by_period = regional_data.groupby(['period', 'region'])['tourist'].sum().reset_index()
-    regional_pivot = regional_by_period.pivot(index='period', columns='region', values='tourist').fillna(0)
-    
-    # Calculate percentages for 100% stacked bar chart
-    regional_pivot_percent = regional_pivot.div(regional_pivot.sum(axis=1), axis=0) * 100
-    
-    # Use a mix of distinct red, blue, and grey shades from the palette
-    mixed_palette = ['#2066a8', '#8ec1da', '#ededed', '#f6d6c2', '#ae282c']
-    n_regions = len(regional_pivot_percent.columns)
-    colors = mixed_palette[:n_regions]
-    
-    # Create stacked bar chart
-    fig, ax = plt.subplots(figsize=(14, 8))
-    regional_pivot_percent.plot(kind='bar', stacked=True, ax=ax, color=colors, alpha=0.8, edgecolor='black', linewidth=1)
-    
-    ax.set_title('Breakdown of Tourists by Region', **STANDARD_TITLE_CONFIG)
-    ax.set_ylabel('Percentage of Tourists (%)', **STANDARD_LABEL_CONFIG)
-    ax.set_xlabel('Period', **STANDARD_LABEL_CONFIG)
-    
-    # Set x-axis labels (horizontal, smaller font)
-    ax.set_xticklabels(interval_labels, fontsize=10, rotation=0)
-    
-    # Place legend at the bottom in a single horizontal line, with less space below x-axis
-    legend = ax.legend(title='Region', bbox_to_anchor=(0.5, -0.10), loc='upper center', ncol=n_regions, frameon=False)
-    
-    # Add note just below the legend, but above the bottom edge
-    plt.figtext(0.5, 0.025, 'Note: Africa is excluded due to negligible percentage.', ha='center', fontsize=11, color='gray')
-    
-    # Format y-axis as percentages
-    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{x:.0f}%'))
-    ax.set_ylim(0, 100)
-    
-    plt.tight_layout(rect=[0, 0.08, 1, 1])
-    plt.savefig('visualizations/regional_distribution_maps.png', **STANDARD_FIGURE_CONFIG)
-    plt.close()
-
 # 3. Top 10 Countries by Tourist Count (2023-2024) - Sorted in descending order
 def plot_top_countries():
     # Calculate total tourists by country for 2023-2024
@@ -363,7 +300,46 @@ def plot_two_period_growth_comparison():
     plt.tight_layout()
     plt.savefig('visualizations/two_period_growth_comparison.png', **STANDARD_FIGURE_CONFIG)
     plt.close()
-    print('\nTwo-period growth comparison chart created: visualizations/two_period_growth_comparison.png')
+
+def plot_stacked_region_distribution():
+    df2 = df.copy()
+    # Exclude unreliable years (2020-2022) and Africa
+    df2 = df2[~df2['year'].isin([2020, 2021, 2022])]
+    df2 = df2[df2['region'] != 'Africa']
+    # Aggregate total tourists per year and region
+    agg = df2.groupby(['year', 'region'])['tourist'].sum().reset_index()
+    # Pivot to get regions as columns
+    pivot = agg.pivot_table(index='year', columns='region', values='tourist', fill_value=0)
+    # Calculate percentages
+    pivot_pct = pivot.div(pivot.sum(axis=1), axis=0) * 100
+    # Convert years to string to avoid gaps and reverse order for plotting
+    year_labels = [str(y) for y in pivot_pct.index]
+    year_labels = year_labels[::-1]  # Reverse so most recent is at the bottom
+    pivot_pct = pivot_pct.iloc[::-1]  # Reverse DataFrame rows to match
+    # Use distinct, contrasting colors for regions
+    region_list = list(pivot_pct.columns)
+    palette_len = len(COLOR_PALETTE)
+    color_indices = list(range(0, palette_len, max(1, palette_len // len(region_list))))
+    colors = [COLOR_PALETTE[i % palette_len] for i in color_indices[:len(region_list)]]
+    # Plot horizontal stacked bar chart
+    plt.figure(figsize=(16, 10))
+    bottom = None
+    for i, region in enumerate(region_list):
+        plt.barh(year_labels, pivot_pct[region], left=bottom, label=region, color=colors[i])
+        if bottom is None:
+            bottom = pivot_pct[region].copy()
+        else:
+            bottom += pivot_pct[region]
+    plt.xlabel('Percentage of Total Tourists (%)', **STANDARD_LABEL_CONFIG)
+    plt.ylabel('Year', **STANDARD_LABEL_CONFIG)
+    plt.title('Tourist Region Distribution by Year (Excl. Covid Era)', **STANDARD_TITLE_CONFIG)
+    plt.xlim(0, 100)
+    plt.grid(True, axis='x', **STANDARD_GRID_CONFIG)
+    # Place legend in a single line at the bottom
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.12), ncol=len(region_list), frameon=False)
+    plt.tight_layout(rect=[0, 0.08, 1, 1])
+    plt.savefig('visualizations/stacked_region_distribution.png', **STANDARD_FIGURE_CONFIG)
+    plt.close()
 
 # Main execution
 if __name__ == "__main__":
@@ -372,10 +348,7 @@ if __name__ == "__main__":
     # Create all visualizations
     plot_total_visitors_growth()
     print("Total visitors growth chart created")
-    
-    plot_regional_maps()
-    print("Regional distribution stacked bar chart created")
-    
+        
     plot_top_countries()
     print("Top 10 countries chart created")
     
@@ -390,5 +363,8 @@ if __name__ == "__main__":
     
     plot_two_period_growth_comparison()
     print("Two-period growth comparison chart created")
+    
+    plot_stacked_region_distribution()
+    print("Stacked bar chart (region distribution) created")
     
     print("\nAll visualizations saved in the 'visualizations' folder!") 
