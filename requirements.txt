@@ -2,4 +2,6 @@ pandas
 matplotlib
 seaborn
 numpy
-bar_chart_race 
+bar_chart_race
+geopandas==0.12.2
+fiona==1.8.22 

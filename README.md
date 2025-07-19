@@ -3,8 +3,8 @@ Analyzing Tourism Trends related for Japan
 
 Folders:
 1. raw_data - Data Files extracted from different sources
-2. processed_data - Pre-processed data ready for analysis
-3. visualizations - Final Visualizations
+2. visualizations - Final Visualizations
+3. shapefiles - Geo files for plotting prefecture visit on Japan's map
 
 Files:
 0. plot_config.py - Standardized configurations for plots.

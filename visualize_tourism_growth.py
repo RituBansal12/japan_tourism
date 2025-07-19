@@ -14,7 +14,7 @@ if not os.path.exists('visualizations'):
     os.makedirs('visualizations')
 
 # Load the cleaned data
-df = pd.read_csv('processed_data/cleaned_visitors.csv')
+df = pd.read_csv('raw_data/cleaned_visitors.csv')
 
 # Convert year to datetime for better plotting
 df['year'] = pd.to_numeric(df['year'], errors='coerce')
