@@ -187,21 +187,23 @@ def plot_monthly_distribution_heatmap():
 
 
 def animate_top_15_countries():
-    # Prepare data: sum by year and country, EXCLUDING COVID YEARS (2020-2022)
-    yearly_country = df[~df['year'].isin([2020, 2021, 2022])].groupby(['year', 'country'])['tourist'].sum().reset_index()
-    
+    # Only include years 2001-2019 and 2023-2024 (exclude 2020-2022)
+    valid_years = list(range(2001, 2020)) + [2023, 2024]
+    sub_df = df[df['year'].isin(valid_years)]
+    # Prepare data: sum by year and country
+    yearly_country = sub_df.groupby(['year', 'country'])['tourist'].sum().reset_index()
     # Pivot for bar_chart_race: index=year, columns=country, values=tourist
     pivot = yearly_country.pivot(index='year', columns='country', values='tourist').fillna(0)
-    
+    # MP4 export (high quality)
     bcr.bar_chart_race(
         df=pivot,
         filename='visualizations/top_15_countries_barchart_race.mp4',
         orientation='h',
         sort='desc',
         n_bars=15,
-        period_length=3000,  # Slower for smoother transitions (3 seconds per year)
+        period_length=2500,  # 2.5 seconds per year, total duration < 1 min
         interpolate_period=True,
-        title='Top 15 Countries by Tourism Visitors to Japan (1996-2024)\nExcluding Covid Era (2020-2022)',
+        title='Top 15 Countries by Tourism Visitors to Japan (2001-2024)\nExcluding Covid Era (2020-2022)',
         title_size=20,  # Bold title size
         bar_size=.95,
         period_label=True,
@@ -214,6 +216,29 @@ def animate_top_15_countries():
         steps_per_period=30,  # More frames for smoother animation
         tick_label_size=12,  # Larger y-axis labels
         shared_fontdict={'weight': 'bold'}  # Make all text bold
+    )
+    # GIF export (smaller size, smoother)
+    bcr.bar_chart_race(
+        df=pivot,
+        filename='visualizations/top_15_countries_barchart_race.gif',
+        orientation='h',
+        sort='desc',
+        n_bars=15,
+        period_length=2500,  # 2.5 seconds per year
+        interpolate_period=True,
+        title='Top 15 Countries by Tourism Visitors to Japan (2001-2024)\nExcluding Covid Era (2020-2022)',
+        title_size=16,  # Slightly smaller title for GIF
+        bar_size=.95,
+        period_label=True,
+        period_fmt='{x:.0f}',
+        cmap=['#2066a8'],
+        filter_column_colors=False,
+        figsize=(9, 5.5),  # More compact for GIF
+        dpi=100,           # Lower DPI for smaller file
+        writer='imagemagick',
+        steps_per_period=20,  # Smoother animation
+        tick_label_size=10,
+        shared_fontdict={'weight': 'bold'}
     )
 
 def plot_two_period_growth_comparison():
