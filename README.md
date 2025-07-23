@@ -1,6 +1,8 @@
 # japan_tourism
 Analyzing Tourism Trends related for Japan 
 
+Medium Article: https://medium.com/@ritu.bansalrb00/why-is-everyone-going-to-japan-34815b9b7247
+
 Folders:
 1. raw_data - Data Files extracted from different sources
 2. visualizations - Final Visualizations
