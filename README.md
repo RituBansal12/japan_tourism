@@ -1,4 +1,4 @@
-# japan_tourism
+# Tourism trends in Japan
 Analyzing tourism trends for Japan using public datasets, geospatial data, and custom visualizations.
 
 ## Table of Contents
