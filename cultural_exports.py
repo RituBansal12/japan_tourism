@@ -5,7 +5,7 @@ from plot_config import *
 
 # File paths
 anime_path = os.path.join('raw_data', 'Anime_market_stats.csv')
-manga_path = os.path.join('raw_data', 'Manga_market_stats .csv')  # Note the space in the filename
+manga_path = os.path.join('raw_data', 'Manga_market_stats.csv')
 sushi_path = os.path.join('raw_data', 'sushi_restaurants_in_USA.csv')
 
 # --- Anime Market Visualization ---

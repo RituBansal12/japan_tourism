@@ -59,7 +59,7 @@ Analyzing tourism trends for Japan using public datasets, geospatial data, and c
 #### `clean_visitors_csv.py`
 * Purpose: Convert multi-level CSV of inbound visitors into a clean, tidy format.
 * Input: `raw_data/Visitors_by_nationality.csv`
-* Output: Writes `processed_data/cleaned_visitors.csv` (script default). Note: a `raw_data/cleaned_visitors.csv` is present in this repo and is used by downstream scripts.
+* Output: Writes `raw_data/cleaned_visitors.csv` (script default).
 * Key Features: Country→region mapping; melt+pivot; numeric cleaning; column standardization to `year, month, country, region, total, tourist, business, others, short_excursion`.
 
 #### `visualize_tourism_growth.py`
@@ -109,8 +109,6 @@ The project uses the following directories:
   - Visitors and metadata CSVs: `Visitors_by_nationality.csv`, `cleaned_visitors.csv`, `tourism_top_10_countries.csv`, `travel_costs.csv`, `spend_per_capita.csv`, `purpose_of_visit_2024.csv`, `prefecture_visit_rate_2024.csv`, `Anime_market_stats.csv`, `Manga_market_stats .csv`, `sushi_restaurants_in_USA.csv`.
 * `shapefiles/`
   - GADM Japan boundaries at levels 0/1/2: `gadm41_JPN_*.{shp,shx,dbf,prj,cpg}`.
-* `processed_data/` (optional)
-  - Created by `clean_visitors_csv.py` when run as-is to store `cleaned_visitors.csv`.
 
 ---
 
@@ -166,7 +164,7 @@ python prefecture_visit_rate.py
 
 ### Run Preprocessing Only
 ```bash
-python clean_visitors_csv.py  # writes processed_data/cleaned_visitors.csv
+python clean_visitors_csv.py  # writes raw_data/cleaned_visitors.csv
 ```
 
 ### Use Components Programmatically
@@ -217,5 +215,4 @@ See `requirements.txt`:
 
 * Some visuals explicitly exclude 2020–2022 due to pandemic-era distortions.
 * Prefecture name mapping is manual and may require updates for alternate spellings.
-* `clean_visitors_csv.py` writes to `processed_data/` by default, whereas downstream scripts read `raw_data/cleaned_visitors.csv`. Adjust paths as needed.
-* `Manga_market_stats .csv` filename includes a space before `.csv` and is referenced as-is.
+* shapefiles are from GADM

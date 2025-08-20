@@ -66,6 +66,6 @@ for col in ['total', 'tourist', 'business', 'others', 'short_excursion']:
     )
 
 # Write to CSV
-df_pivot.to_csv('processed_data/cleaned_visitors.csv', index=False)
+df_pivot.to_csv('raw_data/cleaned_visitors.csv', index=False)
 
-print('Cleaned data written to processed_data/cleaned_visitors.csv') 
+print('Cleaned data written to raw_data/cleaned_visitors.csv') 
